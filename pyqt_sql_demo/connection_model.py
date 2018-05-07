@@ -1,24 +1,52 @@
 from PyQt5.Qt import *
 
-
+import os.path
 import sqlite3
-
+import pyqt_sql_demo.exceptions as exceptions
 
 class ConnectionModel(QAbstractTableModel):
     def __init__(self, parent):
         super().__init__(parent)
 
-        # Dummy initialization
+        # Stores last successful connection url
+        self.url = None
+        # Stores last attempted connection url
+        self.attempted_url = None
+        # Stores connection object 
         self.con = None
+
+
         self._headers = []
         self._data = []
         self._row_count = 0
         self._column_count = 0
 
     def connect(self, connection_string):
-        self.con = sqlite3.connect(connection_string)
+        # Strip connection string of missed whitespaces
+        self.attempted_url = connection_string.strip()
+        # Throw error if url is invalid
+        self.verify_attempted_url()
+        # Attempt connection
+        self.con = sqlite3.connect(self.attempted_url)
+        # Use highly-optimized RowFactory to enable
+        # name based access to columns in rows
         self.con.row_factory = sqlite3.Row
+        # Remember current connected URL
+        self.url = self.attempted_url
+        # Log the success message
         print('probably connected')
+
+    def verify_attempted_url(self):
+        url = self.attempted_url
+        # Two types of SQLite connection URLs are allowed:
+        # - :memory:
+        # - path to existing file
+        if url == ':memory:':
+            return
+        if os.path.isfile(url):
+            return
+        # Raise an exception with predefined message
+        raise exceptions.FileNotFoundError(url)
 
     def execute(self, query):
         cur = self.con.cursor()

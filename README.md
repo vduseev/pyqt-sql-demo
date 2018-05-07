@@ -1,4 +1,4 @@
-# Demo: PyQT based SQL query executor
+# PyQT based SQL query executor demo
 
 ## Features
 * Executes user's DDL/DML SQL queries 

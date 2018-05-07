@@ -1,6 +1,7 @@
 from PyQt5.Qt import *
 
 from pyqt_sql_demo.connection_model import ConnectionModel
+from pyqt_sql_demo.error_handler import ErrorHandler as handle_error
 
 
 class ConnectionWidget(QWidget):
@@ -29,7 +30,7 @@ class ConnectionWidget(QWidget):
         # Connection button
         connection_button = QPushButton(self)
         connection_button.setText('Connect')
-        connection_button.clicked.connect(self.connect)
+        connection_button.clicked.connect(self.on_connect_click)
         control_row_layout.addWidget(connection_button)
         # Add contol row as a first widget in a column
         control_row = QWidget(self)
@@ -49,7 +50,7 @@ class ConnectionWidget(QWidget):
         query_control_layout.setContentsMargins(0, 0, 0, 0)
 
         query_execute_button = QPushButton('Execute', self)
-        query_execute_button.clicked.connect(self.execute)
+        query_execute_button.clicked.connect(self.on_execute_click)
         query_control_layout.addWidget(query_execute_button)
 
         query_commit_button = QPushButton('Commit', self)
@@ -76,19 +77,21 @@ class ConnectionWidget(QWidget):
         table_view.sizePolicy().setVerticalPolicy(
             QSizePolicy.MinimumExpanding)
         splitter.addWidget(table_view)
+        splitter.setSizes([100, 900])
 
         # Assign layout to the widget
         layout.addWidget(splitter)
         self.setLayout(layout)
 
-    def connect(self):
-        connection_string = self.connection_line.text()
-        self.model.connect(connection_string)
-        print('Connected to', connection_string)
+    def on_connect_click(self):
+        with handle_error():
+            connection_string = self.connection_line.text()
+            self.model.connect(connection_string)
+            print('Connected to', connection_string)
 
-    def execute(self):
-        query = self.query_text_edit.toPlainText()
-        self.model.execute(query)
-        print('Executed:', query)
-
+    def on_execute_click(self):
+        with handle_error():
+            query = self.query_text_edit.toPlainText()
+            self.model.execute(query)
+            print('Executed:', query)
 
