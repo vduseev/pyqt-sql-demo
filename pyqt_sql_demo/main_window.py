@@ -28,6 +28,9 @@ class MainWindow(QMainWindow):
         close_connection_action.triggered.connect(self.close_current_tab)
         connection_menu.addAction(close_connection_action)
 
+        self.tool_bar = self.addToolBar('test bar')
+        self.connect_action = self.tool_bar.addAction('connect')
+
         self.add_new_tab()
         # Next steps:
         # 1. Make query filed constant, and table as docked

@@ -7,13 +7,25 @@ from pyqt_sql_demo.error_handler import ErrorHandler as handle_error
 class ConnectionWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
-
+        # Initialize data model
         self.model = ConnectionModel(self)
+        # Initialize UI
+        self.init_ui()
 
-        # Declare widgets layout
+    def init_ui(self):
+        # Declare main vertical layout
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        # Initialize control toolbar
+        control_bar = self.init_control_bar()
+        layout.addWidget(control_bar)
+        # Initialize workspace
+        workspace = self.init_workspace()
+        layout.addWidget(workspace)
+        # Apply configured UI layout to the widget
+        self.setLayout(layout)
 
+    def init_control_bar(self):
         # Add control bar
         control_row_layout = QHBoxLayout(self)
         control_row_layout.setContentsMargins(0, 0, 0, 0)
@@ -35,8 +47,9 @@ class ConnectionWidget(QWidget):
         # Add contol row as a first widget in a column
         control_row = QWidget(self)
         control_row.setLayout(control_row_layout)
-        layout.addWidget(control_row)
+        return control_row
 
+    def init_workspace(self):
         # Create a splitter consisting of query edit and table view
         splitter = QSplitter(self)
         splitter.setOrientation(Qt.Vertical)
@@ -78,10 +91,7 @@ class ConnectionWidget(QWidget):
             QSizePolicy.MinimumExpanding)
         splitter.addWidget(table_view)
         splitter.setSizes([100, 900])
-
-        # Assign layout to the widget
-        layout.addWidget(splitter)
-        self.setLayout(layout)
+        return splitter
 
     def on_connect_click(self):
         with handle_error():
