@@ -1,4 +1,6 @@
-from PyQt5.Qt import *
+from PyQt5.Qt import QVBoxLayout, QHBoxLayout, QComboBox,\
+                     QLineEdit, QPushButton, QWidget, QTabWidget,\
+                     QSplitter, QTextEdit, QTableView, QSizePolicy, Qt
 
 from pyqt_sql_demo.connection_model import ConnectionModel
 from pyqt_sql_demo.error_handler import ErrorHandler as handle_error
@@ -55,6 +57,17 @@ class ConnectionWidget(QWidget):
         splitter.setOrientation(Qt.Vertical)
         splitter.sizePolicy().setVerticalPolicy(QSizePolicy.Maximum)
 
+        # Initialize query edit file
+        query_edit = self.init_query_text_edit()
+        splitter.addWidget(query_edit)
+
+        # Initialize result desiplaying widgets
+        results_widget = self.init_results_widget()
+        splitter.addWidget(results_widget)
+        splitter.setSizes([100, 900])
+        return splitter
+
+    def init_query_text_edit(self):
         # Add query edit widget
         query_edit_layout = QVBoxLayout(self)
         query_edit_layout.setContentsMargins(0, 0, 0, 0)
@@ -70,6 +83,10 @@ class ConnectionWidget(QWidget):
         query_commit_button.clicked.connect(self.model.commit)
         query_control_layout.addWidget(query_commit_button)
 
+        query_rollback_button = QPushButton('Rollback', self)
+        query_rollback_button.clicked.connect(self.model.rollback)
+        query_control_layout.addWidget(query_rollback_button)
+
         query_control = QWidget(self)
         query_control.setLayout(query_control_layout)
         query_edit_layout.addWidget(query_control)
@@ -82,22 +99,33 @@ class ConnectionWidget(QWidget):
         query_edit = QWidget(self)
         query_edit.setLayout(query_edit_layout)
         query_edit.sizePolicy().setVerticalPolicy(QSizePolicy.Minimum)
-        splitter.addWidget(query_edit)
+        return query_edit
+
+    def init_results_widget(self):
+        # Initialize QTabWidget to display table view and log
+        # in differnt unclosable tabs
+        results_widget = QTabWidget(self)
+        results_widget.setTabsClosable(False)
 
         # Add table view
         table_view = QTableView(self)
         table_view.setModel(self.model)
         table_view.sizePolicy().setVerticalPolicy(
             QSizePolicy.MinimumExpanding)
-        splitter.addWidget(table_view)
-        splitter.setSizes([100, 900])
-        return splitter
+        results_widget.addTab(table_view, 'Data')
+
+        # Att log view
+        log = QTextEdit(self)
+        log.setReadOnly(True)
+        self.model.execute_signal.connect(log.append)
+        results_widget.addTab(log, 'Events')
+        return results_widget
 
     def on_connect_click(self):
         with handle_error():
             connection_string = self.connection_line.text()
             self.model.connect(connection_string)
-            print('Connected to', connection_string)
+            print('Connected', connection_string)
 
     def on_execute_click(self):
         with handle_error():
@@ -105,3 +133,7 @@ class ConnectionWidget(QWidget):
             self.model.execute(query)
             print('Executed:', query)
 
+    def on_rollbacl_click(self):
+        with handle_error():
+            self.model.rollback()
+            print('Rollback')

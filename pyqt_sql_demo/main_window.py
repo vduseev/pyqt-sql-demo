@@ -1,4 +1,4 @@
-from PyQt5.Qt import *
+from PyQt5.Qt import QMainWindow, QTabWidget, QAction
 
 from pyqt_sql_demo.connection_widget import ConnectionWidget
 
@@ -45,4 +45,3 @@ class MainWindow(QMainWindow):
     def close_current_tab(self):
         idx = self.tab_widget.currentIndex()
         self.tab_widget.removeTab(idx)
-
