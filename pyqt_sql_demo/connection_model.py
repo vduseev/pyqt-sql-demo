@@ -8,7 +8,10 @@ import pyqt_sql_demo.exceptions as exceptions
 
 class ConnectionModel(QAbstractTableModel):
 
-    execute_signal = pyqtSignal(str, name='execute_signal')
+    executed = pyqtSignal(str, name='executed')
+    connected = pyqtSignal()
+    disconnected = pyqtSignal()
+    fetch_changed = pyqtSignal(bool, name='fetch_changed')
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -19,6 +22,7 @@ class ConnectionModel(QAbstractTableModel):
         self.attempted_url = None
         # Stores connection object
         self.con = None
+        self.cur = None
 
         self._headers = []
         self._data = []
@@ -26,6 +30,8 @@ class ConnectionModel(QAbstractTableModel):
         self._column_count = 0
 
     def connect(self, connection_string):
+        # Disconnect from old connection, if any
+        self.disconnect()
         # Strip connection string of missed whitespaces
         self.attempted_url = connection_string.strip()
         # Throw error if url is invalid
@@ -37,9 +43,22 @@ class ConnectionModel(QAbstractTableModel):
         self.con.row_factory = sqlite3.Row
         # Remember current connected URL
         self.url = self.attempted_url
+        # Let the listeners know that connection is established
+        self.connected.emit()
         # Log the success message
-        self.execute_signal.emit('Connected: ' + connection_string)
-        print('probably connected')
+        self.executed.emit('Connected: ' + connection_string)
+
+    def disconnect(self):
+        # Attempt to disconnect
+        if self.cur:
+            self.cur.close()
+            self.cur = None
+        if self.con:
+            self.con.close()
+            self.con = None
+        # Notify listeners that connection is closed
+        self.disconnected.emit()
+
 
     def verify_attempted_url(self):
         url = self.attempted_url
@@ -54,13 +73,14 @@ class ConnectionModel(QAbstractTableModel):
         raise exceptions.FileNotFoundError(url)
 
     def execute(self, query):
-        cur = self.con.cursor()
-        cur.execute(query)
-        print('rowCount:', cur.rowcount)
+        self.cur = self.con.cursor()
+        self.cur.execute(query)
+        print('rowCount:', self.cur.rowcount)
 
         # Fetch first row
-        first_row = cur.fetchone()
+        first_row = self.cur.fetchone()
         if first_row:
+            # Fetch first row
             self.beginResetModel()
             print('fetched first row')
             self._column_count = len(first_row)
@@ -68,26 +88,56 @@ class ConnectionModel(QAbstractTableModel):
             self._headers = first_row.keys()
             print('headers:', self._headers)
             self._data = [first_row]
-
-            # Try to fetch more
-            more = cur.fetchall()
-            if len(more) > 0:
-                print('fetched all else')
-                self._data.extend(more)
-            self._row_count = len(self._data)
+            self._row_count = 1
             self.endResetModel()
+            print('Must be 1 row here!')
+            # Fetch additional rows
+            self.fetch_more()
+        else:
+            # Try to read from Cursor.description if zero rows
+            # returned 
+            self.beginResetModel()
+            if cur.description:
+                self._headers = [h[0] for h in cur.description]
+                print('headers:', self._headers)
+                self._column_count = len(self._headers)
+            else:
+                self._headers = []
+                self._column_count = 0
+            self._row_count = 0
+            self._data = []
+            self.endResetModel()
+            # Disable further fetching
+            self.fetch_changed.emit(False)
 
-        print('data:', [tuple(r) for r in self._data])
-        self.execute_signal.emit('Executed: ' + query)
+        # print('data:', [tuple(r) for r in self._data])
+        self.executed.emit('Executed: ' + query)
+
+    def fetch_more(self):
+        limit = 500
+        # Try to fetch more
+        more = self.cur.fetchmany(limit)
+        print('fetched {} rows in fetch_more'.format(len(more)))
+        if len(more) > 0:
+            self.beginResetModel()
+            count = self._row_count + len(more)
+            print('fetched {} rows in total'.format(count))
+            self._data.extend(more)
+            self._row_count = count
+            self.endResetModel()
+        # Disable further fetching if less rows than
+        # that fetching window is returned
+        # And enable otherwise
+        self.fetch_changed.emit(len(more) >= limit)
 
     def commit(self):
         self.con.commit()
-        self.execute_signal.emit('Committed')
+        self.executed.emit('Committed')
         print('commit')
 
     def rollback(self):
         self.con.rollback()
-        self.execute_signal.emit('Rollback')
+        self.executed.emit('Rollback')
         print('rollback')
 
     def rowCount(self, parent):

@@ -59,6 +59,8 @@ class ConnectionWidget(QWidget):
 
         # Initialize query edit file
         query_edit = self.init_query_text_edit()
+        # Disable query control buttons by default
+        self.on_disconnected()
         splitter.addWidget(query_edit)
 
         # Initialize result desiplaying widgets
@@ -75,17 +77,22 @@ class ConnectionWidget(QWidget):
         query_control_layout = QHBoxLayout(self)
         query_control_layout.setContentsMargins(0, 0, 0, 0)
 
-        query_execute_button = QPushButton('Execute', self)
-        query_execute_button.clicked.connect(self.on_execute_click)
-        query_control_layout.addWidget(query_execute_button)
+        self.query_execute_button = QPushButton('Execute', self)
+        self.query_execute_button.clicked.connect(self.on_execute_click)
+        query_control_layout.addWidget(self.query_execute_button)
 
-        query_commit_button = QPushButton('Commit', self)
-        query_commit_button.clicked.connect(self.model.commit)
-        query_control_layout.addWidget(query_commit_button)
+        self.query_fetch_button = QPushButton('Fetch', self)
+        self.query_fetch_button.clicked.connect(self.on_fetch_click)
+        self.model.fetch_changed.connect(self.on_fetch_changed)
+        query_control_layout.addWidget(self.query_fetch_button)
 
-        query_rollback_button = QPushButton('Rollback', self)
-        query_rollback_button.clicked.connect(self.model.rollback)
-        query_control_layout.addWidget(query_rollback_button)
+        self.query_commit_button = QPushButton('Commit', self)
+        self.query_commit_button.clicked.connect(self.on_connect_click)
+        query_control_layout.addWidget(self.query_commit_button)
+
+        self.query_rollback_button = QPushButton('Rollback', self)
+        self.query_rollback_button.clicked.connect(self.on_rollback_click)
+        query_control_layout.addWidget(self.query_rollback_button)
 
         query_control = QWidget(self)
         query_control.setLayout(query_control_layout)
@@ -95,6 +102,10 @@ class ConnectionWidget(QWidget):
         self.query_text_edit.setText(
            "SELECT name FROM sqlite_master WHERE type='table'")
         query_edit_layout.addWidget(self.query_text_edit)
+
+        # Connect model's connected/disconnected signals
+        self.model.connected.connect(self.on_connected)
+        self.model.disconnected.connect(self.on_disconnected)
 
         query_edit = QWidget(self)
         query_edit.setLayout(query_edit_layout)
@@ -117,7 +128,7 @@ class ConnectionWidget(QWidget):
         # Att log view
         log = QTextEdit(self)
         log.setReadOnly(True)
-        self.model.execute_signal.connect(log.append)
+        self.model.executed.connect(log.append)
         results_widget.addTab(log, 'Events')
         return results_widget
 
@@ -133,7 +144,29 @@ class ConnectionWidget(QWidget):
             self.model.execute(query)
             print('Executed:', query)
 
-    def on_rollbacl_click(self):
+    def on_fetch_click(self):
+        with handle_error():
+            self.model.fetch_more()
+            print('Fetch more')
+
+    def on_rollback_click(self):
         with handle_error():
             self.model.rollback()
             print('Rollback')
+
+    def on_connected(self):
+        self.query_commit_button.setEnabled(True)
+        self.query_execute_button.setEnabled(True)
+        self.query_fetch_button.setEnabled(False)
+        self.query_rollback_button.setEnabled(True)
+        self.query_text_edit.setEnabled(True)
+
+    def on_disconnected(self):
+        self.query_commit_button.setEnabled(False)
+        self.query_execute_button.setEnabled(False)
+        self.query_fetch_button.setEnabled(False)
+        self.query_rollback_button.setEnabled(False)
+        self.query_text_edit.setEnabled(False)
+
+    def on_fetch_changed(self, state):
+        self.query_fetch_button.setEnabled(state)
