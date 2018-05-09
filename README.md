@@ -1,5 +1,7 @@
 # PyQT based SQL query executor demo
 
+![PyQt SQL Demo](https://image.ibb.co/cw5fr7/pyqt_sql_demo.jpg)
+
 ## Features
 * Executes user's DDL/DML SQL queries 
 * Python3, PyQt5, DB-API 2.0 (does not use QtSql!)
