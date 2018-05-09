@@ -18,5 +18,3 @@ class ErrorHandler(object):
         else:
             print(exc_type, exc_value)
             traceback.print_tb(tb)
-
-

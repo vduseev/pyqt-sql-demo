@@ -9,7 +9,7 @@ import pyqt_sql_demo.exceptions as exceptions
 class ConnectionModel(QAbstractTableModel):
 
     executed = pyqtSignal(str, name='executed')
-    connected = pyqtSignal()
+    connected = pyqtSignal(str, name='connected')
     disconnected = pyqtSignal()
     fetch_changed = pyqtSignal(bool, name='fetch_changed')
 
@@ -44,7 +44,7 @@ class ConnectionModel(QAbstractTableModel):
         # Remember current connected URL
         self.url = self.attempted_url
         # Let the listeners know that connection is established
-        self.connected.emit()
+        self.connected.emit(self.url)
         # Log the success message
         self.executed.emit('Connected: ' + connection_string)
 
@@ -58,7 +58,6 @@ class ConnectionModel(QAbstractTableModel):
             self.con = None
         # Notify listeners that connection is closed
         self.disconnected.emit()
-
 
     def verify_attempted_url(self):
         url = self.attempted_url
@@ -95,10 +94,10 @@ class ConnectionModel(QAbstractTableModel):
             self.fetch_more()
         else:
             # Try to read from Cursor.description if zero rows
-            # returned 
+            # returned
             self.beginResetModel()
-            if cur.description:
-                self._headers = [h[0] for h in cur.description]
+            if self.cur.description:
+                self._headers = [h[0] for h in self.cur.description]
                 print('headers:', self._headers)
                 self._column_count = len(self._headers)
             else:

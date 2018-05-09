@@ -19,4 +19,3 @@ def main():
     w.show()
 
     app.exec()
-

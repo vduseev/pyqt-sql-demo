@@ -1,16 +1,23 @@
 from PyQt5.Qt import QVBoxLayout, QHBoxLayout, QComboBox,\
                      QLineEdit, QPushButton, QWidget, QTabWidget,\
                      QSplitter, QTextEdit, QTableView, QSizePolicy, Qt
+from PyQt5.QtCore import pyqtSignal
 
 from pyqt_sql_demo.connection_model import ConnectionModel
 from pyqt_sql_demo.error_handler import ErrorHandler as handle_error
 
 
 class ConnectionWidget(QWidget):
+
+    title_changed = pyqtSignal(QWidget, str, name='title_changed')
+
     def __init__(self, parent):
         super().__init__(parent)
+        # Initial widget title
+        self.title = 'Untitled'
         # Initialize data model
         self.model = ConnectionModel(self)
+        self.model.connected.connect(self.on_connection_changed)
         # Initialize UI
         self.init_ui()
 
@@ -170,3 +177,6 @@ class ConnectionWidget(QWidget):
 
     def on_fetch_changed(self, state):
         self.query_fetch_button.setEnabled(state)
+
+    def on_connection_changed(self, name):
+        self.title_changed.emit(self, name)

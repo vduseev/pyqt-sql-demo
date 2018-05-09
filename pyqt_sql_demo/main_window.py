@@ -12,6 +12,7 @@ class MainWindow(QMainWindow):
         # Set up QTabWidget as a central widget
         self.tab_widget = QTabWidget(self)
         self.tab_widget.setTabsClosable(True)
+        self.tab_widget.tabCloseRequested.connect(self.on_tab_close_clicked)
         self.setCentralWidget(self.tab_widget)
 
         # Create "Connection" menu
@@ -28,20 +29,24 @@ class MainWindow(QMainWindow):
         close_connection_action.triggered.connect(self.close_current_tab)
         connection_menu.addAction(close_connection_action)
 
-        self.tool_bar = self.addToolBar('test bar')
-        self.connect_action = self.tool_bar.addAction('connect')
+        # self.tool_bar = self.addToolBar('test bar')
+        # self.connect_action = self.tool_bar.addAction('connect')
 
         self.add_new_tab()
-        # Next steps:
-        # 1. Make query filed constant, and table as docked
-        # 2. Build normal size resizable window
-        # 3. Read about that DB API
-        pass
 
     def add_new_tab(self):
         connection_widget = ConnectionWidget(self.tab_widget)
+        connection_widget.title_changed.connect(self.on_tab_name_changed)
         self.tab_widget.addTab(connection_widget, 'Untitled')
 
     def close_current_tab(self):
         idx = self.tab_widget.currentIndex()
         self.tab_widget.removeTab(idx)
+
+    def on_tab_close_clicked(self, idx):
+        self.tab_widget.removeTab(idx)
+
+    def on_tab_name_changed(self, widget, name):
+        idx = self.tab_widget.indexOf(widget)
+        if idx != -1:
+            self.tab_widget.setTabText(idx, name)
