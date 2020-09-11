@@ -1,6 +1,7 @@
 # Python
 .build.info
 __pycache__
+dist/
 *.egg-info
 
 # VS Code
