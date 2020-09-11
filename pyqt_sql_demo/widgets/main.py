@@ -1,6 +1,6 @@
 from PyQt5.Qt import QMainWindow, QTabWidget, QAction
 
-from pyqt_sql_demo.connection_widget import ConnectionWidget
+from pyqt_sql_demo.widgets.connection import ConnectionWidget
 
 
 class MainWindow(QMainWindow):
@@ -17,15 +17,15 @@ class MainWindow(QMainWindow):
 
         # Create "Connection" menu
         menu_bar = self.menuBar()
-        connection_menu = menu_bar.addMenu('Connection')
+        connection_menu = menu_bar.addMenu("Connection")
 
         # Add "Create" connection button
-        create_connection_action = QAction('Create', self)
+        create_connection_action = QAction("Create", self)
         create_connection_action.triggered.connect(self.add_new_tab)
         connection_menu.addAction(create_connection_action)
 
         # Add "Close" connection button
-        close_connection_action = QAction('Close', self)
+        close_connection_action = QAction("Close", self)
         close_connection_action.triggered.connect(self.close_current_tab)
         connection_menu.addAction(close_connection_action)
 
@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
     def add_new_tab(self):
         connection_widget = ConnectionWidget(self.tab_widget)
         connection_widget.title_changed.connect(self.on_tab_name_changed)
-        self.tab_widget.addTab(connection_widget, 'Untitled')
+        self.tab_widget.addTab(connection_widget, "Untitled")
 
     def close_current_tab(self):
         idx = self.tab_widget.currentIndex()

@@ -1,4 +1,5 @@
 import traceback
+import logging
 
 
 class ErrorHandler(object):
@@ -12,9 +13,10 @@ class ErrorHandler(object):
         return True
 
     def handle(self, exc_type, exc_value, tb):
-        if hasattr(exc_value, 'message'):
-            print(exc_type, exc_value.message)
+        if hasattr(exc_value, "message"):
+            logging.error(f"{exc_type} {exc_value.message}")
             traceback.print_tb(tb)
         else:
             print(exc_type, exc_value)
+            logging.error(f"{exc_type} {exc_value}")
             traceback.print_tb(tb)

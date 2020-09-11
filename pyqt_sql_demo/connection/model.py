@@ -1,17 +1,18 @@
 from PyQt5.Qt import QAbstractTableModel, Qt
 from PyQt5.QtCore import pyqtSignal
 
+import pyqt_sql_demo.connection.exceptions as exceptions
+
 import os.path
 import sqlite3
-import pyqt_sql_demo.exceptions as exceptions
+import logging
 
 
 class ConnectionModel(QAbstractTableModel):
-
-    executed = pyqtSignal(str, name='executed')
-    connected = pyqtSignal(str, name='connected')
+    executed = pyqtSignal(str, name="executed")
+    connected = pyqtSignal(str, name="connected")
     disconnected = pyqtSignal()
-    fetch_changed = pyqtSignal(bool, name='fetch_changed')
+    fetch_changed = pyqtSignal(bool, name="fetch_changed")
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -46,7 +47,7 @@ class ConnectionModel(QAbstractTableModel):
         # Let the listeners know that connection is established
         self.connected.emit(self.url)
         # Log the success message
-        self.executed.emit('Connected: ' + connection_string)
+        self.executed.emit("Connected: " + connection_string)
 
     def disconnect(self):
         # Attempt to disconnect
@@ -64,7 +65,7 @@ class ConnectionModel(QAbstractTableModel):
         # Two types of SQLite connection URLs are allowed:
         # - :memory:
         # - path to existing file
-        if url == ':memory:':
+        if url == ":memory:":
             return
         if os.path.isfile(url):
             return
@@ -74,22 +75,21 @@ class ConnectionModel(QAbstractTableModel):
     def execute(self, query):
         self.cur = self.con.cursor()
         self.cur.execute(query)
-        print('rowCount:', self.cur.rowcount)
+        logging.debug(f"row count: {self.cur.rowcount}")
 
         # Fetch first row
         first_row = self.cur.fetchone()
         if first_row:
             # Fetch first row
             self.beginResetModel()
-            print('fetched first row')
+            logging.debug(f"fetcher first row")
             self._column_count = len(first_row)
-            print('column_count:', self._column_count)
+            logging.debug(f"column count: {self._column_count}")
             self._headers = first_row.keys()
-            print('headers:', self._headers)
+            logging.debug(f"headers: {self._headers}")
             self._data = [first_row]
             self._row_count = 1
             self.endResetModel()
-            print('Must be 1 row here!')
             # Fetch additional rows
             self.fetch_more()
         else:
@@ -98,7 +98,7 @@ class ConnectionModel(QAbstractTableModel):
             self.beginResetModel()
             if self.cur.description:
                 self._headers = [h[0] for h in self.cur.description]
-                print('headers:', self._headers)
+                logging.debug(f"headers: {self._headers}")
                 self._column_count = len(self._headers)
             else:
                 self._headers = []
@@ -110,17 +110,17 @@ class ConnectionModel(QAbstractTableModel):
             self.fetch_changed.emit(False)
 
         # print('data:', [tuple(r) for r in self._data])
-        self.executed.emit('Executed: ' + query)
+        self.executed.emit("Executed: " + query)
 
     def fetch_more(self):
         limit = 500
         # Try to fetch more
         more = self.cur.fetchmany(limit)
-        print('fetched {} rows in fetch_more'.format(len(more)))
+        logging.debug(f"fetched {len(more)} rows in fetch_more call")
         if len(more) > 0:
             self.beginResetModel()
             count = self._row_count + len(more)
-            print('fetched {} rows in total'.format(count))
+            logging.debug(f"fetched {count} rows in total")
             self._data.extend(more)
             self._row_count = count
             self.endResetModel()
@@ -131,13 +131,13 @@ class ConnectionModel(QAbstractTableModel):
 
     def commit(self):
         self.con.commit()
-        self.executed.emit('Committed')
-        print('commit')
+        self.executed.emit("Committed")
+        logging.debug(f"Commit")
 
     def rollback(self):
         self.con.rollback()
-        self.executed.emit('Rollback')
-        print('rollback')
+        self.executed.emit("Rollback")
+        logging.debug("Rollback")
 
     def rowCount(self, parent):
         return self._row_count

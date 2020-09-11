@@ -16,6 +16,5 @@ class FileError(Error):
 class FileNotFoundError(FileError):
     def __init__(self, filename):
         super().__init__(
-            filename,
-            'File {} is not found or is unaccessible'.format(filename)
+            filename, "File {} is not found or is unaccessible".format(filename)
         )
