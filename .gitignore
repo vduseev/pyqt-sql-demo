@@ -1,2 +1,10 @@
+# Python
 .build.info
-Pipfile.lock
+__pycache__
+*.egg-info
+
+# VS Code
+.vscode
+
+# MacOS
+.DS_Store
