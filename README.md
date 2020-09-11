@@ -1,13 +1,15 @@
 # PyQT based SQL query executor demo example
 
+[![Build Status](https://travis-ci.org/vduseev/pyqt-sql-demo.svg?style=plasticbranch=master&style=plastic)](https://travis-ci.org/vduseev/pyqt-sql-demo)
+![PyPI](https://img.shields.io/pypi/v/pyqt-sql-demo?style=flat)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyqt-sql-demo?style=flat)
+![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat)
+![PyPI - License](https://img.shields.io/pypi/l/pyqt-sql-demo?style=flat)
+
+
 This is a demo example of using `PyQT` and `SQLite` via standard Python `DB-API` interface. 
 It's created to be used as a tutorial or reference. 
 It uses `QtWidgets` for interface, `QTableView` for displaying SQL query results, `pygments` for syntax highlighting, and `sqlite3` for db connection.
-
-![PyPI](https://img.shields.io/pypi/v/pyqt-sql-demo?style=plastic)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyqt-sql-demo?style=plastic)
-![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=plastic)
-![PyPI - License](https://img.shields.io/pypi/l/pyqt-sql-demo?style=plastic)
 
 ![PyQt SQL Demo](docs/pyqt-sql-demo-rec.gif)
 
