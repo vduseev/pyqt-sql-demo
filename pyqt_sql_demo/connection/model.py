@@ -82,7 +82,7 @@ class ConnectionModel(QAbstractTableModel):
         if first_row:
             # Fetch first row
             self.beginResetModel()
-            logging.debug(f"fetcher first row")
+            logging.debug("fetcher first row")
             self._column_count = len(first_row)
             logging.debug(f"column count: {self._column_count}")
             self._headers = first_row.keys()
@@ -132,7 +132,7 @@ class ConnectionModel(QAbstractTableModel):
     def commit(self):
         self.con.commit()
         self.executed.emit("Committed")
-        logging.debug(f"Commit")
+        logging.debug("Commit")
 
     def rollback(self):
         self.con.rollback()

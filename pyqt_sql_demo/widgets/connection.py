@@ -10,7 +10,6 @@ from PyQt5.Qt import (
     QTabWidget,
     QSplitter,
     QTextEdit,
-    QTextCursor,
     QTextDocument,
     QTableView,
     QSizePolicy,
@@ -20,8 +19,9 @@ from PyQt5.QtCore import pyqtSignal
 
 from pyqt_sql_demo.connection.model import ConnectionModel
 from pyqt_sql_demo.connection.error_handler import ErrorHandler
-from pyqt_sql_demo.widgets.text import *
 from pyqt_sql_demo.syntax_highlighter import sql as SQLHighlighter
+
+import pyqt_sql_demo.widgets.text as UI
 
 
 class ConnectionWidget(QWidget):
@@ -34,7 +34,7 @@ class ConnectionWidget(QWidget):
         self.is_processing_highlighting = False
 
         # Initial widget title
-        self.title = CONNECTION_TAB_DEFAULT_TITLE
+        self.title = UI.CONNECTION_TAB_DEFAULT_TITLE
 
         # Initialize data model
         self.model = ConnectionModel(self)
@@ -66,19 +66,19 @@ class ConnectionWidget(QWidget):
 
         # DB type combo box
         db_combo_box = QComboBox(self)
-        for dbname in CONNECTION_STRING_SUPPORTED_DB_NAMES:
+        for dbname in UI.CONNECTION_STRING_SUPPORTED_DB_NAMES:
             db_combo_box.addItem(dbname)
         control_row_layout.addWidget(db_combo_box)
 
         # Connection string
         self.connection_line = QLineEdit(self)
-        self.connection_line.setPlaceholderText(CONNECTION_STRING_PLACEHOLDER)
-        self.connection_line.setText(CONNECTION_STRING_DEFAULT)
+        self.connection_line.setPlaceholderText(UI.CONNECTION_STRING_PLACEHOLDER)
+        self.connection_line.setText(UI.CONNECTION_STRING_DEFAULT)
         control_row_layout.addWidget(self.connection_line)
 
         # Connection button
         connection_button = QPushButton(self)
-        connection_button.setText(QUERY_CONTROL_CONNECT_BUTTON_TEXT)
+        connection_button.setText(UI.QUERY_CONTROL_CONNECT_BUTTON_TEXT)
         connection_button.clicked.connect(self.on_connect_click)
         control_row_layout.addWidget(connection_button)
 
@@ -114,24 +114,24 @@ class ConnectionWidget(QWidget):
         query_control_layout.setContentsMargins(0, 0, 0, 0)
 
         # Execute query button
-        self.query_execute_button = QPushButton(QUERY_CONTROL_EXECUTE_BUTTON_TEXT, self)
+        self.query_execute_button = QPushButton(UI.QUERY_CONTROL_EXECUTE_BUTTON_TEXT, self)
         self.query_execute_button.clicked.connect(self.on_execute_click)
         query_control_layout.addWidget(self.query_execute_button)
 
         # Fetch data button
-        self.query_fetch_button = QPushButton(QUERY_CONTROL_FETCH_BUTTON_TEXT, self)
+        self.query_fetch_button = QPushButton(UI.QUERY_CONTROL_FETCH_BUTTON_TEXT, self)
         self.query_fetch_button.clicked.connect(self.on_fetch_click)
         self.model.fetch_changed.connect(self.on_fetch_changed)
         query_control_layout.addWidget(self.query_fetch_button)
 
         # Commit button
-        self.query_commit_button = QPushButton(QUERY_CONTROL_COMMIT_BUTTON_TEXT, self)
+        self.query_commit_button = QPushButton(UI.QUERY_CONTROL_COMMIT_BUTTON_TEXT, self)
         self.query_commit_button.clicked.connect(self.on_connect_click)
         query_control_layout.addWidget(self.query_commit_button)
 
         # Rollback button
         self.query_rollback_button = QPushButton(
-            QUERY_CONTROL_ROLLBACK_BUTTON_TEXT, self
+            UI.QUERY_CONTROL_ROLLBACK_BUTTON_TEXT, self
         )
         self.query_rollback_button.clicked.connect(self.on_rollback_click)
         query_control_layout.addWidget(self.query_rollback_button)
@@ -151,7 +151,7 @@ class ConnectionWidget(QWidget):
         self.query_text_edit = QTextEdit(self)
         self.query_text_edit.setDocument(self.query_text_edit_document)
         self.query_text_edit.textChanged.connect(self.on_query_changed)
-        self.query_text_edit.setText(QUERY_EDITOR_DEFAULT_TEXT)
+        self.query_text_edit.setText(UI.QUERY_EDITOR_DEFAULT_TEXT)
         query_edit_layout.addWidget(self.query_text_edit)
 
         # Connect model's connected/disconnected signals
@@ -173,13 +173,13 @@ class ConnectionWidget(QWidget):
         table_view = QTableView(self)
         table_view.setModel(self.model)
         table_view.sizePolicy().setVerticalPolicy(QSizePolicy.MinimumExpanding)
-        results_widget.addTab(table_view, QUERY_RESULTS_DATA_TAB_TEXT)
+        results_widget.addTab(table_view, UI.QUERY_RESULTS_DATA_TAB_TEXT)
 
         # Att log view
         log = QTextEdit(self)
         log.setReadOnly(True)
         self.model.executed.connect(log.append)
-        results_widget.addTab(log, QUERY_RESULTS_EVENTS_TAB_TEXT)
+        results_widget.addTab(log, UI.QUERY_RESULTS_EVENTS_TAB_TEXT)
         return results_widget
 
     def on_query_changed(self):
@@ -224,12 +224,12 @@ class ConnectionWidget(QWidget):
     def on_fetch_click(self):
         with ErrorHandler():
             self.model.fetch_more()
-            logging.info(f"Fetch more")
+            logging.info("Fetch more")
 
     def on_rollback_click(self):
         with ErrorHandler():
             self.model.rollback()
-            logging.info(f"Rollback")
+            logging.info("Rollback")
 
     def on_connected(self):
         self.query_commit_button.setEnabled(True)
