@@ -17,6 +17,7 @@ pyqt-sql-demo = "pyqt_sql_demo.app:launch"
 python = "^3.8"
 pyqt5 = "^5.15.0"
 pygments = "^2.6.1"
+mysql-connector = "2.2.9"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"
