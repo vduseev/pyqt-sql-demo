@@ -65,15 +65,17 @@ class ConnectionWidget(QWidget):
         control_row_layout.setContentsMargins(0, 0, 0, 0)
 
         # DB type combo box
-        db_combo_box = QComboBox(self)
+        self.db_combo_box = QComboBox(self)
+        self.db_combo_box.currentTextChanged.connect(self.on_combobox_changed)
+
         for dbname in UI.CONNECTION_STRING_SUPPORTED_DB_NAMES:
-            db_combo_box.addItem(dbname)
-        control_row_layout.addWidget(db_combo_box)
+            self.db_combo_box.addItem(dbname)
+        control_row_layout.addWidget(self.db_combo_box)
 
         # Connection string
         self.connection_line = QLineEdit(self)
         self.connection_line.setPlaceholderText(UI.CONNECTION_STRING_PLACEHOLDER)
-        self.connection_line.setText(UI.CONNECTION_STRING_DEFAULT)
+        self.connection_line.setText(UI.CONNECTION_STRING_SQL_LITE_DEFAULT)
         control_row_layout.addWidget(self.connection_line)
 
         # Connection button
@@ -151,7 +153,9 @@ class ConnectionWidget(QWidget):
         self.query_text_edit = QTextEdit(self)
         self.query_text_edit.setDocument(self.query_text_edit_document)
         self.query_text_edit.textChanged.connect(self.on_query_changed)
-        self.query_text_edit.setText(UI.QUERY_EDITOR_DEFAULT_TEXT)
+        
+        # Don't set the query as we don't know what kind of database type we will use
+
         query_edit_layout.addWidget(self.query_text_edit)
 
         # Connect model's connected/disconnected signals
@@ -209,10 +213,26 @@ class ConnectionWidget(QWidget):
             current_cursor.setPosition(current_cursor_position)
             self.query_text_edit.setTextCursor(current_cursor)
 
+    def on_combobox_changed(self):
+        if hasattr(self, 'connection_line'):
+            database_type = str(self.db_combo_box.currentText())
+    
+            if database_type == "SQLite":
+                self.connection_line.setText(UI.CONNECTION_STRING_SQL_LITE_DEFAULT)
+            elif database_type == "MySQL":
+                self.connection_line.setText(UI.CONNECTION_STRING_MYSQL_DEFAULT)
+
     def on_connect_click(self):
         with ErrorHandler():
+            database_type = str(self.db_combo_box.currentText())
             connection_string = self.connection_line.text()
-            self.model.connect(connection_string)
+            self.model.connect(database_type, connection_string)
+        
+            if self.model.database_type == 'SQLite':
+                self.query_text_edit.setText(UI.QUERY_EDITOR_DEFAULT_TEXT_SQL_LITE)
+            elif self.model.database_type == 'MySQL':
+                self.query_text_edit.setText(UI.QUERY_EDITOR_DEFAULT_TEXT_MYSQL)
+            
             logging.info(f"Connected: {connection_string}")
 
     def on_execute_click(self):
